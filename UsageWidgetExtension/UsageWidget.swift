@@ -43,6 +43,7 @@ struct UsageBarView: View {
     let percent: Double
     let tokens: Int
     let limit: Int
+    var resetSeconds: Int = 0
     var barHeight: CGFloat = 7
     var titleSize: CGFloat = 11
     var percentSize: CGFloat = 12
@@ -76,7 +77,7 @@ struct UsageBarView: View {
             .frame(height: barHeight)
 
             HStack {
-                Text("Sliding window")
+                Text(UsageFetcher.formatDuration(resetSeconds))
                     .font(.system(size: detailSize))
                     .foregroundStyle(.secondary)
                 Spacer()
@@ -229,6 +230,12 @@ struct SmallWidgetView: View {
                     .frame(width: 16, height: 16)
                 Text("Claude Usage")
                     .font(.system(size: 13, weight: .bold))
+                Spacer()
+                Image("AuthorLogo")
+                    .resizable()
+                    .frame(width: 14, height: 14)
+                    .clipShape(Circle())
+                    .opacity(0.7)
             }
 
             UsageBarView(
@@ -236,6 +243,7 @@ struct SmallWidgetView: View {
                 percent: usage.fiveHourPercent,
                 tokens: usage.tokensUsed5h ?? 0,
                 limit: usage.tokenLimit5h ?? 1_000_000,
+                resetSeconds: usage.fiveHourResetSeconds,
                 barHeight: 6,
                 titleSize: 10,
                 percentSize: 11,
@@ -247,6 +255,7 @@ struct SmallWidgetView: View {
                 percent: usage.sevenDayPercent,
                 tokens: usage.tokensUsed7d ?? 0,
                 limit: usage.tokenLimit7d ?? 50_000_000,
+                resetSeconds: usage.sevenDayResetSeconds,
                 barHeight: 6,
                 titleSize: 10,
                 percentSize: 11,
@@ -290,14 +299,16 @@ struct MediumWidgetView: View {
                     title: "5-Hour Window",
                     percent: usage.fiveHourPercent,
                     tokens: usage.tokensUsed5h ?? 0,
-                    limit: usage.tokenLimit5h ?? 1_000_000
+                    limit: usage.tokenLimit5h ?? 1_000_000,
+                    resetSeconds: usage.fiveHourResetSeconds
                 )
 
                 UsageBarView(
                     title: "7-Day Window",
                     percent: usage.sevenDayPercent,
                     tokens: usage.tokensUsed7d ?? 0,
-                    limit: usage.tokenLimit7d ?? 50_000_000
+                    limit: usage.tokenLimit7d ?? 50_000_000,
+                    resetSeconds: usage.sevenDayResetSeconds
                 )
 
                 Spacer(minLength: 0)
@@ -360,6 +371,12 @@ struct LargeWidgetView: View {
                     .frame(width: 20, height: 20)
                 Text("Claude Usage")
                     .font(.system(size: 16, weight: .bold))
+                Spacer()
+                Image("AuthorLogo")
+                    .resizable()
+                    .frame(width: 16, height: 16)
+                    .clipShape(Circle())
+                    .opacity(0.7)
             }
 
             // 5-Hour Window
@@ -368,6 +385,7 @@ struct LargeWidgetView: View {
                 percent: usage.fiveHourPercent,
                 tokens: usage.tokensUsed5h ?? 0,
                 limit: usage.tokenLimit5h ?? 1_000_000,
+                resetSeconds: usage.fiveHourResetSeconds,
                 barHeight: 8,
                 titleSize: 13,
                 percentSize: 13,
@@ -380,6 +398,7 @@ struct LargeWidgetView: View {
                 percent: usage.sevenDayPercent,
                 tokens: usage.tokensUsed7d ?? 0,
                 limit: usage.tokenLimit7d ?? 50_000_000,
+                resetSeconds: usage.sevenDayResetSeconds,
                 barHeight: 8,
                 titleSize: 13,
                 percentSize: 13,
@@ -433,6 +452,7 @@ struct ClaudeUsageWidget: Widget {
         StaticConfiguration(kind: kind, provider: UsageTimelineProvider()) { entry in
             ClaudeUsageWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
+                .widgetURL(URL(string: "https://castillocanton.com")!)
         }
         .configurationDisplayName("Claude Usage")
         .description("Monitor your Claude Code token usage in real-time.")

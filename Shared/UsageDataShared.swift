@@ -97,6 +97,8 @@ class UsageFetcher {
 
         var tokens5h = 0
         var tokens7d = 0
+        var earliest5h: Date? = nil
+        var earliest7d: Date? = nil
         var buckets: [String: (t5h: Int, t7d: Int)] = [:]
 
         guard let projectDirs = try? FileManager.default.contentsOfDirectory(
@@ -144,7 +146,11 @@ class UsageFetcher {
                     let total = outTokens + inTokens + cacheCreate
 
                     tokens7d += total
-                    if ts >= fiveHoursAgo { tokens5h += total }
+                    if earliest7d == nil || ts < earliest7d! { earliest7d = ts }
+                    if ts >= fiveHoursAgo {
+                        tokens5h += total
+                        if earliest5h == nil || ts < earliest5h! { earliest5h = ts }
+                    }
 
                     // Bucket by 10-min intervals
                     let cal = Calendar.current
@@ -183,11 +189,22 @@ class UsageFetcher {
         // Add current point
         history.append(UsageSnapshot(timestamp: now, fiveHourPercent: fiveHPct, sevenDayPercent: sevenDPct))
 
+        // Time until earliest token exits the window
+        let reset5h: Int
+        if let e = earliest5h {
+            reset5h = max(0, Int(e.addingTimeInterval(5 * 3600).timeIntervalSince(now)))
+        } else { reset5h = 0 }
+
+        let reset7d: Int
+        if let e = earliest7d {
+            reset7d = max(0, Int(e.addingTimeInterval(7 * 86400).timeIntervalSince(now)))
+        } else { reset7d = 0 }
+
         let info = UsageInfo(
             fiveHourPercent: fiveHPct,
-            fiveHourResetSeconds: 0,
+            fiveHourResetSeconds: reset5h,
             sevenDayPercent: sevenDPct,
-            sevenDayResetSeconds: 0,
+            sevenDayResetSeconds: reset7d,
             history: history,
             lastUpdated: now,
             tokensUsed5h: tokens5h,

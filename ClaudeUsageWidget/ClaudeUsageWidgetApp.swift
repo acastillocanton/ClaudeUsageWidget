@@ -43,11 +43,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(NSMenuItem.separator())
 
-        let fiveH = NSMenuItem(title: "5h: \(Int(usageInfo.fiveHourPercent))% — \(UsageFetcher.formatTokens(usageInfo.tokensUsed5h ?? 0)) tokens", action: nil, keyEquivalent: "")
+        let reset5h = UsageFetcher.formatDuration(usageInfo.fiveHourResetSeconds)
+        let fiveH = NSMenuItem(title: "5h: \(Int(usageInfo.fiveHourPercent))% — \(UsageFetcher.formatTokens(usageInfo.tokensUsed5h ?? 0)) tokens — \(reset5h)", action: nil, keyEquivalent: "")
         fiveH.isEnabled = false
         menu.addItem(fiveH)
 
-        let sevenD = NSMenuItem(title: "7d: \(Int(usageInfo.sevenDayPercent))% — \(UsageFetcher.formatTokens(usageInfo.tokensUsed7d ?? 0)) tokens", action: nil, keyEquivalent: "")
+        let reset7d = UsageFetcher.formatDuration(usageInfo.sevenDayResetSeconds)
+        let sevenD = NSMenuItem(title: "7d: \(Int(usageInfo.sevenDayPercent))% — \(UsageFetcher.formatTokens(usageInfo.tokensUsed7d ?? 0)) tokens — \(reset7d)", action: nil, keyEquivalent: "")
         sevenD.isEnabled = false
         menu.addItem(sevenD)
 
@@ -55,6 +57,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(withTitle: "Refresh", action: #selector(refresh), keyEquivalent: "r")
         menu.addItem(withTitle: "Reload Widget", action: #selector(reloadWidget), keyEquivalent: "")
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(withTitle: "By Alejandro Castillo — castillocanton.com", action: #selector(openAuthorSite), keyEquivalent: "")
         menu.addItem(NSMenuItem.separator())
         menu.addItem(withTitle: "Quit", action: #selector(quit), keyEquivalent: "q")
 
@@ -70,6 +74,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func reloadWidget() {
         WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    @objc func openAuthorSite() {
+        if let url = URL(string: "https://castillocanton.com") {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     @objc func quit() {
