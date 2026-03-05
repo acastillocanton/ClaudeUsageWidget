@@ -81,9 +81,11 @@ struct UsageBarView: View {
                     .font(.system(size: detailSize))
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text("\(UsageFetcher.formatTokens(tokens)) / \(UsageFetcher.formatTokens(limit))")
-                    .font(.system(size: detailSize))
-                    .foregroundStyle(.secondary)
+                if tokens > 0 {
+                    Text("\(UsageFetcher.formatTokens(tokens)) / \(UsageFetcher.formatTokens(limit))")
+                        .font(.system(size: detailSize))
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }
@@ -231,10 +233,12 @@ struct SmallWidgetView: View {
                 Text("Claude Usage")
                     .font(.system(size: 13, weight: .bold))
                 Spacer()
-                Image("AuthorLogo")
-                    .resizable()
-                    .frame(width: 16, height: 16)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                Link(destination: URL(string: "https://castillocanton.com")!) {
+                    Image("AuthorLogo")
+                        .resizable()
+                        .frame(width: 16, height: 16)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
             }
 
             UsageBarView(
@@ -292,6 +296,13 @@ struct MediumWidgetView: View {
                         .frame(width: 16, height: 16)
                     Text("Claude Usage")
                         .font(.system(size: 13, weight: .bold))
+                    Spacer()
+                    Link(destination: URL(string: "https://castillocanton.com")!) {
+                        Image("AuthorLogo")
+                            .resizable()
+                            .frame(width: 16, height: 16)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                    }
                 }
 
                 UsageBarView(
@@ -371,11 +382,12 @@ struct LargeWidgetView: View {
                 Text("Claude Usage")
                     .font(.system(size: 16, weight: .bold))
                 Spacer()
-                Image("AuthorLogo")
-                    .resizable()
-                    .frame(width: 20, height: 20)
-                    .clipShape(Circle())
-                    .opacity(0.7)
+                Link(destination: URL(string: "https://castillocanton.com")!) {
+                    Image("AuthorLogo")
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                        .clipShape(RoundedRectangle(cornerRadius: 5))
+                }
             }
 
             // 5-Hour Window
@@ -451,7 +463,6 @@ struct ClaudeUsageWidget: Widget {
         StaticConfiguration(kind: kind, provider: UsageTimelineProvider()) { entry in
             ClaudeUsageWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
-                .widgetURL(URL(string: "https://castillocanton.com")!)
         }
         .configurationDisplayName("Claude Usage")
         .description("Monitor your Claude Code token usage in real-time.")

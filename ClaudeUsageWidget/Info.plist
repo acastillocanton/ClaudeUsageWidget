@@ -22,6 +22,8 @@
     <string>$(MACOSX_DEPLOYMENT_TARGET)</string>
     <key>LSUIElement</key>
     <true/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>Claude Usage needs to communicate with Google Chrome to fetch your usage data from claude.ai</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
 </dict>

@@ -6,7 +6,6 @@ struct ClaudeUsageWidgetApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        // No main window - this is a menu bar / widget app
         Settings {
             EmptyView()
         }
@@ -18,14 +17,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var usageInfo: UsageInfo = .empty
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Fetch data immediately
-        usageInfo = UsageFetcher.fetchAndSave()
+        // Load cached data first (instant)
+        usageInfo = UsageFetcher.loadUsageInfo()
 
         // Status bar item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-
         updateMenuBarIcon()
         buildMenu()
+
+        // Fetch fresh data after a short delay (lets UI appear first)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            self?.refresh()
+        }
 
         // Auto-refresh every 5 minutes
         Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
@@ -44,12 +47,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem.separator())
 
         let reset5h = UsageFetcher.formatDuration(usageInfo.fiveHourResetSeconds)
-        let fiveH = NSMenuItem(title: "5h: \(Int(usageInfo.fiveHourPercent))% — \(UsageFetcher.formatTokens(usageInfo.tokensUsed5h ?? 0)) tokens — \(reset5h)", action: nil, keyEquivalent: "")
+        let tokensStr5h = usageInfo.tokensUsed5h.map { $0 > 0 ? " — \(UsageFetcher.formatTokens($0)) tokens" : "" } ?? ""
+        let fiveH = NSMenuItem(title: "5h: \(Int(usageInfo.fiveHourPercent))%\(tokensStr5h) — \(reset5h)", action: nil, keyEquivalent: "")
         fiveH.isEnabled = false
         menu.addItem(fiveH)
 
         let reset7d = UsageFetcher.formatDuration(usageInfo.sevenDayResetSeconds)
-        let sevenD = NSMenuItem(title: "7d: \(Int(usageInfo.sevenDayPercent))% — \(UsageFetcher.formatTokens(usageInfo.tokensUsed7d ?? 0)) tokens — \(reset7d)", action: nil, keyEquivalent: "")
+        let tokensStr7d = usageInfo.tokensUsed7d.map { $0 > 0 ? " — \(UsageFetcher.formatTokens($0)) tokens" : "" } ?? ""
+        let sevenD = NSMenuItem(title: "7d: \(Int(usageInfo.sevenDayPercent))%\(tokensStr7d) — \(reset7d)", action: nil, keyEquivalent: "")
         sevenD.isEnabled = false
         menu.addItem(sevenD)
 
@@ -66,10 +71,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func refresh() {
-        usageInfo = UsageFetcher.fetchAndSave()
-        updateMenuBarIcon()
-        buildMenu()
-        WidgetCenter.shared.reloadAllTimelines()
+        // Run fetch on background thread (Chrome API has a 3s sleep)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let info = UsageFetcher.fetchAndSave()
+            DispatchQueue.main.async {
+                self?.usageInfo = info
+                self?.updateMenuBarIcon()
+                self?.buildMenu()
+                WidgetCenter.shared.reloadAllTimelines()
+            }
+        }
     }
 
     @objc func reloadWidget() {
