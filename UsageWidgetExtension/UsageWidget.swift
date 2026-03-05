@@ -233,9 +233,8 @@ struct SmallWidgetView: View {
                 Spacer()
                 Image("AuthorLogo")
                     .resizable()
-                    .frame(width: 14, height: 14)
-                    .clipShape(Circle())
-                    .opacity(0.7)
+                    .frame(width: 16, height: 16)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
             }
 
             UsageBarView(
@@ -374,7 +373,7 @@ struct LargeWidgetView: View {
                 Spacer()
                 Image("AuthorLogo")
                     .resizable()
-                    .frame(width: 16, height: 16)
+                    .frame(width: 20, height: 20)
                     .clipShape(Circle())
                     .opacity(0.7)
             }
